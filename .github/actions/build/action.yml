@@ -64,6 +64,7 @@ runs:
     if: github.event_name == 'pull_request'
     shell: bash
     run: |
+      go clean -testcache
       COVERAGE_OPTS="-covermode=count -coverprofile=coverage.out -coverpkg=./..." make build
       # Remove mock and generated code from account
       grep -v "camel-dashboard-operator/pkg/client" coverage.out \
