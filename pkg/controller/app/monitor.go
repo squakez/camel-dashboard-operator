@@ -27,6 +27,7 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/controller/synthetic"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -69,7 +70,7 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 	targetApp.ImportCamelAnnotations(nonManagedApp.GetAnnotations())
 
 	deployImage := nonManagedApp.GetAppImage()
-	appPhase := nonManagedApp.GetAppPhase()
+	appPhase := nonManagedApp.GetAppPhase(ctx, action.client)
 	targetApp.Status.Phase = appPhase
 	targetApp.Status.Image = deployImage
 	pods, err := nonManagedApp.GetPods(ctx, action.client)
@@ -78,6 +79,11 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 	}
 	targetApp.Status.Pods = pods
 	targetApp.Status.Replicas = nonManagedApp.GetReplicas()
+	if pods == nil {
+		// Will happen in serverless or CronJob. Just skip the rest
+		// of monitoring
+		return targetApp, nil
+	}
 	targetRuntimeInfo := getInfo(pods)
 	if targetRuntimeInfo != nil {
 		targetApp.Status.Info = formatRuntimeInfo(targetRuntimeInfo)
@@ -90,46 +96,7 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 		targetApp.Status.SuccessRate = getSLIExchangeSuccessRate(*appRuntimeInfo, *targetRuntimeInfo, &pollingInterval, sliErrPerc, sliWarnPerc)
 	}
 
-	message := "Success"
-	if app.Status.Replicas != nil && len(pods) != int(*app.Status.Replicas) {
-		message = fmt.Sprintf("%d out of %d pods available", len(pods), int(*app.Status.Replicas))
-	}
-
-	if len(pods) > 0 && allPodsReady(pods) {
-		targetApp.Status.AddCondition(metav1.Condition{
-			Type:               "Monitored",
-			Status:             metav1.ConditionTrue,
-			LastTransitionTime: metav1.NewTime(time.Now()),
-			Reason:             "MonitoringComplete",
-			Message:            message,
-		})
-	} else {
-		targetApp.Status.AddCondition(metav1.Condition{
-			Type:               "Monitored",
-			Status:             metav1.ConditionFalse,
-			LastTransitionTime: metav1.NewTime(time.Now()),
-			Reason:             "MonitoringComplete",
-			Message:            "Some pod is not ready. See specific pods statuses messages.",
-		})
-	}
-
-	if len(pods) > 0 && allPodsUp(pods) {
-		targetApp.Status.AddCondition(metav1.Condition{
-			Type:               "Healthy",
-			Status:             metav1.ConditionTrue,
-			LastTransitionTime: metav1.NewTime(time.Now()),
-			Reason:             "HealthCheckCompleted",
-			Message:            "All pods are reported as healthy.",
-		})
-	} else {
-		targetApp.Status.AddCondition(metav1.Condition{
-			Type:               "Healthy",
-			Status:             metav1.ConditionFalse,
-			LastTransitionTime: metav1.NewTime(time.Now()),
-			Reason:             "HealthCheckCompleted",
-			Message:            "Some pod is not healthy. See specific pods statuses messages.",
-		})
-	}
+	nonManagedApp.SetMonitoringCondition(app, targetApp, pods)
 
 	return targetApp, nil
 }
@@ -142,6 +109,17 @@ func lookupObject(ctx context.Context, c client.Client, kind, ns string, name st
 			TypeMeta: metav1.TypeMeta{
 				Kind:       kind,
 				APIVersion: corev1.SchemeGroupVersion.String(),
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns,
+				Name:      name,
+			},
+		}
+	case "CronJob":
+		obj = &batchv1.CronJob{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       kind,
+				APIVersion: batchv1.SchemeGroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns,
@@ -199,26 +177,6 @@ func getInfo(pods []v1alpha1.PodInfo) *v1alpha1.RuntimeInfo {
 	}
 
 	return &runtimeInfo
-}
-
-func allPodsReady(pods []v1alpha1.PodInfo) bool {
-	for _, pod := range pods {
-		if !pod.Ready {
-			return false
-		}
-	}
-
-	return true
-}
-
-func allPodsUp(pods []v1alpha1.PodInfo) bool {
-	for _, pod := range pods {
-		if pod.Runtime == nil || pod.Runtime.Status != "UP" {
-			return false
-		}
-	}
-
-	return true
 }
 
 func formatRuntimeInfo(runtimeInfo *v1alpha1.RuntimeInfo) string {

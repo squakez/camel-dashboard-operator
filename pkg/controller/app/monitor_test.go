@@ -26,28 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestAllPodsReady(t *testing.T) {
-	pods := []v1alpha1.PodInfo{
-		{Ready: true},
-		{Ready: true},
-	}
-	assert.True(t, allPodsReady(pods))
-
-	pods[1].Ready = false
-	assert.False(t, allPodsReady(pods))
-}
-
-func TestAllPodsUp(t *testing.T) {
-	pods := []v1alpha1.PodInfo{
-		{Runtime: &v1alpha1.RuntimeInfo{Status: "UP"}},
-		{Runtime: &v1alpha1.RuntimeInfo{Status: "UP"}},
-	}
-	assert.True(t, allPodsUp(pods))
-
-	pods[1].Runtime.Status = "DOWN"
-	assert.False(t, allPodsUp(pods))
-}
-
 func TestGetSLIExchangeSuccessRate(t *testing.T) {
 	app := v1alpha1.RuntimeInfo{
 		Exchange: &v1alpha1.ExchangeInfo{

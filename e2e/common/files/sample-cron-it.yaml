@@ -15,55 +15,40 @@
 # limitations under the License.
 # ---------------------------------------------------------------------------
 
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: camel.apache.org/v1
+kind: Integration
 metadata:
-  name: camel-dashboard-operator
+  annotations:
+    camel.apache.org/operator.id: camel-k
+  name: sample-cron-it
   labels:
-    app: "camel-dashboard"
-rules:
-- apiGroups:
-  - camel.apache.org
-  resources:
-  - camelapps
-  verbs:
-  - create
-  - get
-  - list
-  - patch
-  - update
-  - watch
-  - delete
-- apiGroups:
-  - camel.apache.org
-  resources:
-  - camelapps/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - apps
-  resources:
-  - deployments
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - batch
-  resources:
-  - cronjobs
-  - jobs
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - get
-  - list
-  - watch
+    camel.apache.org/app: camel-cron-sample
+spec:
+  dependencies:
+    - mvn:org.apache.camel.quarkus:camel-quarkus-observability-services
+  flows:
+    - route:
+        id: send-a-message
+        from:
+          uri: "timer:tick"
+          parameters:
+            period: "60000"
+          steps:
+            - delay:
+                expression:
+                  # simulate some real workload
+                  constant: 10000
+                asyncDelayed: false
+            - setBody:
+                simple: "Hello Test!"
+            - to: "log:myLogger"
+  traits:
+    # We need a provide any version supporting camel-observability-services
+    camel:
+      runtimeProvider: plain-quarkus
+      runtimeVersion: 3.30.8
+    cron:
+      activeDeadlineSeconds: 45
+    owner:
+      targetLabels:
+        - camel.apache.org/app

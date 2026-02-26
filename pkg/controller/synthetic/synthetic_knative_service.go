@@ -19,6 +19,7 @@ package synthetic
 
 import (
 	"context"
+	"net/http"
 
 	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
@@ -29,7 +30,8 @@ import (
 
 // nonManagedCamelKnativeService represents a Knative Service based Camel application built and deployed outside the operator lifecycle.
 type nonManagedCamelKnativeService struct {
-	ksvc *servingv1.Service
+	ksvc       *servingv1.Service
+	httpClient *http.Client
 }
 
 // CamelApp return an CamelApp resource fed by the Camel application adapter.
@@ -54,7 +56,7 @@ func (app *nonManagedCamelKnativeService) CamelApp(ctx context.Context, c client
 }
 
 // GetAppPhase returns the phase of the backing Camel application.
-func (app *nonManagedCamelKnativeService) GetAppPhase() v1alpha1.CamelAppPhase {
+func (app *nonManagedCamelKnativeService) GetAppPhase(ctx context.Context, c client.Client) v1alpha1.CamelAppPhase {
 	return v1alpha1.CamelAppPhase("TBD")
 }
 
@@ -76,4 +78,9 @@ func (app *nonManagedCamelKnativeService) GetPods(ctx context.Context, c client.
 // GetAnnotations returns the backing deployment object annotations.
 func (app *nonManagedCamelKnativeService) GetAnnotations() map[string]string {
 	return app.ksvc.Annotations
+}
+
+// SetMonitoringCondition sets the health and monitoring conditions on the target app.
+func (app *nonManagedCamelKnativeService) SetMonitoringCondition(srcApp, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo) {
+
 }

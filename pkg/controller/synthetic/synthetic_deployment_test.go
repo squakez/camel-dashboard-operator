@@ -18,6 +18,7 @@ limitations under the License.
 package synthetic
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -76,18 +77,18 @@ func TestNonManagedCamelDeploymentStatic(t *testing.T) {
 	assert.Equal(t, "bar", ann["foo"])
 
 	// Test GetAppPhase when not all replicas available
-	phase := app.GetAppPhase()
+	phase := app.GetAppPhase(context.TODO(), nil)
 	assert.Equal(t, v1alpha1.CamelAppPhaseError, phase)
 
 	// Test GetAppPhase when all replicas available
 	deploy.Status.AvailableReplicas = 3
-	phase = app.GetAppPhase()
+	phase = app.GetAppPhase(context.TODO(), nil)
 	assert.Equal(t, v1alpha1.CamelAppPhaseRunning, phase)
 
 	// Test GetAppPhase when replicas = 0
 	deploy.Status.Replicas = 0
 	deploy.Status.AvailableReplicas = 0
-	phase = app.GetAppPhase()
+	phase = app.GetAppPhase(context.TODO(), nil)
 	assert.Equal(t, v1alpha1.CamelAppPhasePaused, phase)
 
 	// Test CamelApp static fields

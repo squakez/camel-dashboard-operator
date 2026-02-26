@@ -161,7 +161,7 @@ type NonManagedCamelApplicationAdapter interface {
 	// CamelApp returns a CamelApp resource fed by the Camel application adapter.
 	CamelApp(ctx context.Context, c client.Client) *v1alpha1.CamelApp
 	// GetAppPhase returns the phase of the backing Camel application.
-	GetAppPhase() v1alpha1.CamelAppPhase
+	GetAppPhase(ctx context.Context, c client.Client) v1alpha1.CamelAppPhase
 	// GetAppImage returns the container image of the backing Camel application.
 	GetAppImage() string
 	// GetReplicas returns the number of desired replicas for the backing Camel application.
@@ -170,6 +170,8 @@ type NonManagedCamelApplicationAdapter interface {
 	GetPods(ctx context.Context, c client.Client) ([]v1alpha1.PodInfo, error)
 	// GetAnnotations returns the backing deployment object annotations.
 	GetAnnotations() map[string]string
+	// SetMonitoringCondition sets the health and monitoring conditions on the target app.
+	SetMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo)
 }
 
 func NonManagedCamelApplicationFactory(obj ctrl.Object) (NonManagedCamelApplicationAdapter, error) {
@@ -182,11 +184,17 @@ func NonManagedCamelApplicationFactory(obj ctrl.Object) (NonManagedCamelApplicat
 	}
 	cronjob, ok := obj.(*batchv1.CronJob)
 	if ok {
-		return &nonManagedCamelCronjob{cron: cronjob}, nil
+		httpClient := &http.Client{
+			Timeout: 10 * time.Second,
+		}
+		return &nonManagedCamelCronjob{cron: cronjob, httpClient: httpClient}, nil
 	}
 	ksvc, ok := obj.(*servingv1.Service)
 	if ok {
-		return &nonManagedCamelKnativeService{ksvc: ksvc}, nil
+		httpClient := &http.Client{
+			Timeout: 10 * time.Second,
+		}
+		return &nonManagedCamelKnativeService{ksvc: ksvc, httpClient: httpClient}, nil
 	}
 	return nil, fmt.Errorf("unsupported %s object kind", obj.GetName())
 }
