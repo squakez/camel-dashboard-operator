@@ -106,6 +106,15 @@ func deleteTestNamespace(t *testing.T, ctx context.Context, ns ctrl.Object) {
 }
 
 func invokeUserTestCode(t *testing.T, ctx context.Context, ns string, doRun func(context.Context, *gomega.WithT, string)) {
+	defer func() {
+		if t.Failed() {
+			DumpNamespace(t, ctx, ns)
+			// Also dump the operator namespace in case it's common
+			DumpNamespace(t, ctx, "camel-dashboard")
+			DumpNamespace(t, ctx, "camel-k")
+		}
+	}()
+
 	g := gomega.NewWithT(t)
 	doRun(ctx, g, ns)
 }
@@ -279,4 +288,12 @@ func ExpectExecSucceedWithTimeout(t *testing.T, g *WithT, command *exec.Cmd, tim
 	g.Eventually(session).Should(gexec.Exit(0))
 	require.NoError(t, err)
 	assert.NotContains(t, strings.ToUpper(cmdErr.String()), "ERROR")
+}
+
+func DumpNamespace(t *testing.T, ctx context.Context, ns string) {
+	if t.Failed() {
+		if err := Dump(ctx, TestClient(t), ns, t); err != nil {
+			t.Logf("Error while dumping namespace %s: %v\n", ns, err)
+		}
+	}
 }

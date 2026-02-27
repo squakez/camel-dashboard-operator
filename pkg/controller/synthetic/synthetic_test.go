@@ -67,7 +67,7 @@ func TestNonManagedUnsupported(t *testing.T) {
 
 	nilAdapter, err := NonManagedCamelApplicationFactory(pod)
 	require.Error(t, err)
-	assert.Equal(t, "unsupported my-pod object kind", err.Error())
+	assert.Equal(t, "unsupported Pod object kind", err.Error())
 	assert.Nil(t, nilAdapter)
 }
 

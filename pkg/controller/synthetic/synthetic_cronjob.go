@@ -118,11 +118,12 @@ func (app *nonManagedCamelCronjob) SetMonitoringCondition(srcApp, targetApp *v1a
 			Reason:             "HealthCheckCompleted",
 			Message:            info,
 		})
-		info += fmt.Sprintf(
-			"; Last scheduled time: %s; Last successful time: %s",
-			app.cron.Status.LastScheduleTime.Format("2006-01-02 15:04:05"),
-			app.cron.Status.LastSuccessfulTime.Format("2006-01-02 15:04:05"),
-		)
+		if app.cron.Status.LastScheduleTime != nil {
+			info += "; Last scheduled time: " + app.cron.Status.LastScheduleTime.Format("2006-01-02 15:04:05")
+		}
+		if app.cron.Status.LastSuccessfulTime != nil {
+			info += "; Last successful time: " + app.cron.Status.LastSuccessfulTime.Format("2006-01-02 15:04:05")
+		}
 		targetApp.Status.Info = info
 	} else {
 		targetApp.Status.AddCondition(metav1.Condition{

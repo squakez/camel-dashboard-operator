@@ -49,7 +49,7 @@ func TestVerifyCamelKIntegrationCountMessages(t *testing.T) {
 				),
 			)
 			// The name of the selector, "camel.apache.org/app: camel-sample"
-			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/app=camel-sample"), TestTimeoutLong).Should(Equal(corev1.PodRunning))
+			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/app=camel-sample"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
 			// The first time the number of messages is 5
 			g.Eventually(
@@ -115,7 +115,7 @@ func TestVerifyCamelKIntegrationTimerToLog(t *testing.T) {
 				),
 			)
 			// The name of the selector, "camel.apache.org/app: timer-to-log"
-			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/app=timer-to-log"), TestTimeoutLong).Should(Equal(corev1.PodRunning))
+			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/app=timer-to-log"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
 			// We check the success rate is not reporting weird results
 			g.Eventually(

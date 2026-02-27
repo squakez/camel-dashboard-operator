@@ -59,7 +59,7 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 		return nil, err
 	}
 	if objOwner == nil {
-		return nil, fmt.Errorf("deployment %s/%s does not exist", app.Namespace, app.Name)
+		return nil, fmt.Errorf("baking deployment does not exist for App %s/%s", app.Namespace, app.Name)
 	}
 	nonManagedApp, err := synthetic.NonManagedCamelApplicationFactory(*objOwner)
 	if err != nil {

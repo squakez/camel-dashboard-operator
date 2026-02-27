@@ -175,26 +175,20 @@ type NonManagedCamelApplicationAdapter interface {
 }
 
 func NonManagedCamelApplicationFactory(obj ctrl.Object) (NonManagedCamelApplicationAdapter, error) {
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+	}
 	deploy, ok := obj.(*appsv1.Deployment)
 	if ok {
-		httpClient := &http.Client{
-			Timeout: 10 * time.Second,
-		}
 		return &nonManagedCamelDeployment{deploy: deploy, httpClient: httpClient}, nil
 	}
 	cronjob, ok := obj.(*batchv1.CronJob)
 	if ok {
-		httpClient := &http.Client{
-			Timeout: 10 * time.Second,
-		}
 		return &nonManagedCamelCronjob{cron: cronjob, httpClient: httpClient}, nil
 	}
 	ksvc, ok := obj.(*servingv1.Service)
 	if ok {
-		httpClient := &http.Client{
-			Timeout: 10 * time.Second,
-		}
 		return &nonManagedCamelKnativeService{ksvc: ksvc, httpClient: httpClient}, nil
 	}
-	return nil, fmt.Errorf("unsupported %s object kind", obj.GetName())
+	return nil, fmt.Errorf("unsupported %s object kind", obj.GetObjectKind().GroupVersionKind().Kind)
 }
