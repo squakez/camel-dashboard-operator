@@ -27,7 +27,7 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
-	integreatlyv1beta1 "github.com/grafana-operator/grafana-operator/v5/api/v1beta1"
+	integreatlyv1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -66,10 +66,14 @@ func addGrafanaDashboard(ctx context.Context, c client.Client, target *v1alpha1.
 				OwnerReferences: references,
 			},
 			Spec: integreatlyv1beta1.GrafanaDashboardSpec{
-				AllowCrossNamespaceImport: ptr.To(true),
-				FolderTitle:               "camel-dashboard",
-				InstanceSelector:          &metav1.LabelSelector{MatchLabels: platform.GetGrafanaLabels()},
-				Json:                      dashboardJson,
+				GrafanaCommonSpec: integreatlyv1beta1.GrafanaCommonSpec{
+					AllowCrossNamespaceImport: true,
+					InstanceSelector:          &metav1.LabelSelector{MatchLabels: platform.GetGrafanaLabels()},
+				},
+				GrafanaContentSpec: integreatlyv1beta1.GrafanaContentSpec{
+					JSON: dashboardJson,
+				},
+				FolderTitle: "camel-dashboard",
 			},
 		}
 

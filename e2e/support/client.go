@@ -30,7 +30,7 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	camel "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/scheme"
-	integreatlyv1beta1 "github.com/grafana-operator/grafana-operator/v5/api/v1beta1"
+	integreatlyv1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
