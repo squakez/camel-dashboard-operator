@@ -38,6 +38,7 @@ runs:
       addons: registry
       cpus: max
       memory: max
+      container-runtime: docker
   - id: minikube-settings
     name: Set docker-env
     shell: bash
