@@ -34,7 +34,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/onsi/gomega/gstruct"
-	corev1 "k8s.io/api/core/v1"
 )
 
 func TestVerifyPrometheusScrapeMetrics(t *testing.T) {
@@ -50,8 +49,6 @@ func TestVerifyPrometheusScrapeMetrics(t *testing.T) {
 					ns,
 				),
 			)
-			// The name of the selector, "camel.apache.org/monitor: timer-to-log"
-			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/monitor=timer-to-log"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
 			g.Eventually(
 				CamelMonitorStatus(t, ctx, ns, "timer-to-log"),
@@ -113,8 +110,6 @@ func TestVerifyGrafanaDashboard(t *testing.T) {
 					ns,
 				),
 			)
-			// The name of the selector, "camel.apache.org/monitor: timer-to-log"
-			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/monitor=timer-to-log"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
 			g.Eventually(
 				CamelMonitorStatus(t, ctx, ns, "timer-to-log"),

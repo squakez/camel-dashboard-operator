@@ -21,11 +21,7 @@ metadata:
   annotations:
     camel.apache.org/operator.id: camel-k
   name: timer-to-log
-  labels:
-    camel.apache.org/monitor: timer-to-log
 spec:
-  dependencies:
-    - mvn:org.apache.camel.quarkus:camel-quarkus-observability-services
   flows:
     - route:
         id: timer-to-log
@@ -35,12 +31,3 @@ spec:
             - setBody:
                 simple: "Hello!"
             - to: "log:myLogger"
-
-  traits:
-    # We need a provide any version supporting camel-observability-services
-    camel:
-      runtimeProvider: plain-quarkus
-      runtimeVersion: 3.30.8
-    owner:
-      targetLabels:
-        - camel.apache.org/monitor

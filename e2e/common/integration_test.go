@@ -31,7 +31,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/onsi/gomega/gstruct"
-	corev1 "k8s.io/api/core/v1"
 )
 
 func TestVerifyCamelKIntegrationCountMessages(t *testing.T) {
@@ -48,12 +47,10 @@ func TestVerifyCamelKIntegrationCountMessages(t *testing.T) {
 					ns,
 				),
 			)
-			// The name of the selector, "camel.apache.org/monitor: camel-sample"
-			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/monitor=camel-sample"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
 			// The first time the number of messages is 5
 			g.Eventually(
-				CamelMonitorStatus(t, ctx, ns, "camel-sample"),
+				CamelMonitorStatus(t, ctx, ns, "sample-it"),
 				TestTimeoutMedium,
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
@@ -76,7 +73,7 @@ func TestVerifyCamelKIntegrationCountMessages(t *testing.T) {
 			)
 			// With this integration the number of exchanges has to stick to 5 consistently
 			g.Consistently(
-				CamelMonitorStatus(t, ctx, ns, "camel-sample"),
+				CamelMonitorStatus(t, ctx, ns, "sample-it"),
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
 					"Phase": Equal(v1alpha1.CamelMonitorPhaseRunning),
@@ -114,8 +111,6 @@ func TestVerifyCamelKIntegrationTimerToLog(t *testing.T) {
 					ns,
 				),
 			)
-			// The name of the selector, "camel.apache.org/monitor: timer-to-log"
-			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/monitor=timer-to-log"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
 			// We check the success rate is not reporting weird results
 			g.Eventually(

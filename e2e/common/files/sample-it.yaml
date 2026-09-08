@@ -21,11 +21,7 @@ metadata:
   annotations:
     camel.apache.org/operator.id: camel-k
   name: sample-it
-  labels:
-    camel.apache.org/monitor: camel-sample
 spec:
-  dependencies:
-    - mvn:org.apache.camel.quarkus:camel-quarkus-observability-services
   flows:
     - route:
         id: send-5-messages
@@ -35,12 +31,3 @@ spec:
             - setBody:
                 simple: "Hello!"
             - to: "log:myLogger"
-
-  traits:
-    # We need a provide any version supporting camel-observability-services
-    camel:
-      runtimeProvider: plain-quarkus
-      runtimeVersion: 3.30.8
-    owner:
-      targetLabels:
-        - camel.apache.org/monitor

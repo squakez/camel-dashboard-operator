@@ -20,12 +20,10 @@ kind: Integration
 metadata:
   annotations:
     camel.apache.org/operator.id: camel-k
-  name: sample-serverless-it
   labels:
-    camel.apache.org/monitor: camel-serverless-sample
+    camel.apache.org/monitor: sample-serverless-it
+  name: sample-serverless-it
 spec:
-  dependencies:
-    - mvn:org.apache.camel.quarkus:camel-quarkus-observability-services
   flows:
     - route:
         from:
@@ -33,11 +31,8 @@ spec:
           steps:
             - setBody:
                 simple: "Hello!"
+  # workaround until https://github.com/apache/camel-k/issues/6804 is fixed
   traits:
-    # We need a provide any version supporting camel-observability-services
-    camel:
-      runtimeProvider: plain-quarkus
-      runtimeVersion: 3.30.8
     owner:
       targetLabels:
         - camel.apache.org/monitor

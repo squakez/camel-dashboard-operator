@@ -30,7 +30,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/onsi/gomega/gstruct"
-	corev1 "k8s.io/api/core/v1"
 )
 
 func TestVerifyCamelKIntegrationCountMessages(t *testing.T) {
@@ -47,11 +46,9 @@ func TestVerifyCamelKIntegrationCountMessages(t *testing.T) {
 					ns,
 				),
 			)
-			// The name of the selector, "camel.apache.org/monitor: camel-serverless-sample"
-			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/monitor=camel-serverless-sample"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
 			g.Eventually(
-				CamelMonitorStatus(t, ctx, ns, "camel-serverless-sample"),
+				CamelMonitorStatus(t, ctx, ns, "sample-serverless-it"),
 				TestTimeoutMedium,
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
@@ -61,7 +58,7 @@ func TestVerifyCamelKIntegrationCountMessages(t *testing.T) {
 
 			// After a while, the application should scale to 0
 			g.Eventually(
-				CamelMonitorStatus(t, ctx, ns, "camel-serverless-sample"),
+				CamelMonitorStatus(t, ctx, ns, "sample-serverless-it"),
 				TestTimeoutMedium,
 			).Should(
 				MatchFields(IgnoreExtras, Fields{

@@ -19,7 +19,7 @@ name: prometheus
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  CAMEL_K_VERSION: 2.10.1
+  CAMEL_K_VERSION: 2.11.0
 
 on:
   pull_request:
@@ -83,14 +83,15 @@ jobs:
     - name: Install Camel K operator
       shell: bash
       run: |
-        kubectl create ns camel-k
-        kubectl apply -k github.com/apache/camel-k/install/overlays/kubernetes/descoped?ref=v$CAMEL_K_VERSION --server-side
-        kubectl wait --for=condition=available deployment/camel-k-operator --timeout=180s -n camel-k
         REGISTRY=$(kubectl -n kube-system get service registry -o jsonpath='{.spec.clusterIP}')
-        sed -i "s/REPLACETHIS/$REGISTRY/g" ./.github/actions/infra-setting/default-itp.yaml
-        kubectl apply -f ./.github/actions/infra-setting/default-itp.yaml
-        kubectl wait --for=jsonpath='{.status.phase}'=Ready itp/camel-k -n camel-k --timeout=120s
-        kubectl get itp -n camel-k
+
+        kubectl create ns camel-k
+        kubectl create configmap camel-k-operator-configmap-configuration \
+          --from-literal=REGISTRY_ADDRESS="$REGISTRY" \
+          -n camel-k
+
+        kubectl apply -k github.com/apache/camel-k/install/overlays/all-namespaces?ref=v$CAMEL_K_VERSION --server-side
+        kubectl wait --for=condition=available deployment/camel-k-operator --timeout=180s -n camel-k
 
     - name: Run test
       shell: bash
